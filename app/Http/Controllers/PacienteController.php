@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Paciente;
+use App\Models\PlanoAcompanhamento;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -29,11 +30,26 @@ class PacienteController extends Controller
     }
 
     public function index(): JsonResponse{
-        $pacientes = Paciente::all();
+        $pacientes = Paciente::orderBy('name')
+            ->get()
+            ->map(function($paciente){
+            $paciente->cpf = '***.***.***-'.substr($paciente->cpf, -2);
+            return $paciente;
+        });
 
         return response()->json([
             'success' => true,
             'data' => $pacientes
+        ]);
+    }
+
+    public function planos($paciente_id){
+        $planos = PlanoAcompanhamento::with('profissional')
+        ->where('paciente_id', $paciente_id)
+        ->get();
+
+        return response()->json([
+            'data'=>$planos
         ]);
     }
 }
